@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador: Derivadas de Funciones de Dos Variables | Inst. Terrero</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <!-- KaTeX para renderizado de ecuaciones matemáticas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom scrollbar for control panels */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Header / Branding Instituto Terrero -->
+    <header class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <div class="flex items-center space-x-3">
+                    <span class="bg-indigo-500/30 text-indigo-200 text-xs font-semibold px-2.5 py-1 rounded border border-indigo-400/30">
+                        Profesorado en Matemática
+                    </span>
+                    <span class="text-slate-400 text-xs hidden sm:inline">Instituto Monseñor Terrero</span>
+                </div>
+                <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white mt-1">
+                    Derivadas Parciales, Incrementos y Diferencial Total
+                </h1>
+                <p class="text-xs sm:text-sm text-indigo-200 mt-0.5">
+                    Laboratorio Virtual para la Exploración Geométrica de $z = f(x, y)$
+                </p>
+            </div>
+            <div class="mt-3 md:mt-0 flex items-center space-x-2 text-xs bg-white/10 backdrop-blur-md px-3 py-2 rounded-lg border border-white/10">
+                <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span>Exploración interactiva en 3D</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- PANEL DE CONTROL (IZQUIERDA) -->
+            <div class="lg:col-span-4 space-y-6 flex flex-col">
+                
+                <!-- Selección de Función -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-indigo-900 mb-3 flex items-center">
+                        <svg class="w-4 h-4 mr-1.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                        1. Función Superficie $f(x,y)$
+                    </h2>
+                    <select id="funcSelect" class="w-full bg-slate-50 border border-slate-300 text-slate-800 font-medium rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition text-sm">
+                        <option value="paraboloide">f(x,y) = x² + y² (Paraboloide)</option>
+                        <option value="silla">f(x,y) = x² - y² (Silla de montar)</option>
+                        <option value="ondas">f(x,y) = 2·sin(x)·cos(y) (Superficie Ondulada)</option>
+                        <option value="invertido">f(x,y) = 4 - x² - y² (Paraboloide Invertido)</option>
+                        <option value="gaussiana">f(x,y) = 4·exp(-(x²+y²)/2) (Superficie Gaussiana)</option>
+                    </select>
+                </div>
+
+                <!-- Punto Base y Incrementos -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-indigo-900 flex items-center">
+                        <svg class="w-4 h-4 mr-1.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                        </svg>
+                        2. Variables e Incrementos
+                    </h2>
+
+                    <!-- Slider x0 -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs font-medium text-slate-700 mb-1">
+                            <span>Punto $x_0$:</span>
+                            <span id="val_x0" class="font-mono bg-slate-100 px-2 py-0.5 rounded text-indigo-700 font-bold">0.50</span>
+                        </div>
+                        <input type="range" id="slider_x0" min="-1.5" max="1.5" step="0.05" value="0.5" class="w-full accent-indigo-600 cursor-pointer">
+                    </div>
+
+                    <!-- Slider y0 -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs font-medium text-slate-700 mb-1">
+                            <span>Punto $y_0$:</span>
+                            <span id="val_y0" class="font-mono bg-slate-100 px-2 py-0.5 rounded text-indigo-700 font-bold">0.50</span>
+                        </div>
+                        <input type="range" id="slider_y0" min="-1.5" max="1.5" step="0.05" value="0.5" class="w-full accent-indigo-600 cursor-pointer">
+                    </div>
+
+                    <hr class="border-slate-100">
+
+                    <!-- Slider dx -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs font-medium text-slate-700 mb-1">
+                            <span>Incremento $\Delta x$:</span>
+                            <span id="val_dx" class="font-mono bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">+0.40</span>
+                        </div>
+                        <input type="range" id="slider_dx" min="-0.8" max="0.8" step="0.02" value="0.4" class="w-full accent-blue-600 cursor-pointer">
+                    </div>
+
+                    <!-- Slider dy -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs font-medium text-slate-700 mb-1">
+                            <span>Incremento $\Delta y$:</span>
+                            <span id="val_dy" class="font-mono bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">+0.40</span>
+                        </div>
+                        <input type="range" id="slider_dy" min="-0.8" max="0.8" step="0.02" value="0.4" class="w-full accent-emerald-600 cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Opciones de Capas Visuales -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-indigo-900 mb-3 flex items-center">
+                        <svg class="w-4 h-4 mr-1.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        3. Elementos Geométricos
+                    </h2>
+                    <div class="space-y-2 text-xs font-medium">
+                        <label class="flex items-center space-x-2.5 cursor-pointer">
+                            <input type="checkbox" id="chk_tangent" checked class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                            <span class="text-slate-700">Plano Tangente local en $P_0$</span>
+                        </label>
+                        <label class="flex items-center space-x-2.5 cursor-pointer">
+                            <input type="checkbox" id="chk_box" checked class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                            <span class="text-slate-700">Caja de Incrementos ($\Delta x, \Delta y, \Delta z$)</span>
+                        </label>
+                        <label class="flex items-center space-x-2.5 cursor-pointer">
+                            <input type="checkbox" id="chk_slices" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                            <span class="text-slate-700">Curvas Traza de Planos Parciales</span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- VISUALIZACIÓN Y RESULTADOS (DERECHA) -->
+            <div class="lg:col-span-8 space-y-6">
+                
+                <!-- Gráfica 3D -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 relative overflow-hidden">
+                    <div class="absolute top-4 left-4 z-10 bg-white/80 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 shadow-xs">
+                        Vista 3D Interactiva: Rotar (Clic Izquierdo), Zoom (Rueda), Paneo (Clic Derecho)
+                    </div>
+                    <div id="plot3d" class="w-full h-[460px]"></div>
+                </div>
+
+                <!-- Métricas y Resultados Calculados -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    
+                    <!-- Valor Inicial -->
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Punto Inicial $P_0$</span>
+                        <div class="mt-1 flex items-baseline justify-between">
+                            <span class="text-xs text-slate-600">$f(x_0, y_0)=$</span>
+                            <span id="res_f0" class="text-lg font-bold font-mono text-slate-800">0.500</span>
+                        </div>
+                    </div>
+
+                    <!-- Incremento Real dz -->
+                    <div class="bg-white p-4 rounded-xl border border-blue-200 bg-blue-50/30 shadow-xs">
+                        <span class="text-xs font-semibold text-blue-700 uppercase tracking-wider block">Incremento Real</span>
+                        <div class="mt-1 flex items-baseline justify-between">
+                            <span class="text-xs text-blue-900">$\Delta z = f(P_1)-f(P_0)$</span>
+                            <span id="res_deltaz" class="text-lg font-bold font-mono text-blue-700">+0.000</span>
+                        </div>
+                    </div>
+
+                    <!-- Diferencial Total dz -->
+                    <div class="bg-white p-4 rounded-xl border border-indigo-200 bg-indigo-50/30 shadow-xs">
+                        <span class="text-xs font-semibold text-indigo-700 uppercase tracking-wider block">Aproximación Lineal</span>
+                        <div class="mt-1 flex items-baseline justify-between">
+                            <span class="text-xs text-indigo-900">$dz = f_x\Delta x + f_y\Delta y$</span>
+                            <span id="res_dz" class="text-lg font-bold font-mono text-indigo-700">+0.000</span>
+                        </div>
+                    </div>
+
+                    <!-- Error de Aproximación -->
+                    <div class="bg-white p-4 rounded-xl border border-amber-200 bg-amber-50/30 shadow-xs">
+                        <span class="text-xs font-semibold text-amber-700 uppercase tracking-wider block">Error $E(\Delta x,\Delta y)$</span>
+                        <div class="mt-1 flex items-baseline justify-between">
+                            <span class="text-xs text-amber-900 font-medium font-mono">$E = \Delta z - dz$</span>
+                            <span id="res_error" class="text-lg font-bold font-mono text-amber-800">0.000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalle Teórico y Derivadas Parciales Evaluadas -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-sm font-semibold text-indigo-950 uppercase tracking-wider mb-3">
+                        Derivadas Parciales Evaluadas en el Punto $P_0$
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-mono bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-600 font-sans">Derivada Parcial $\frac{\partial f}{\partial x}$:</span>
+                            <span id="res_fx" class="font-bold text-indigo-600">f_x(x₀,y₀) = 1.000</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-600 font-sans">Derivada Parcial $\frac{\partial f}{\partial y}$:</span>
+                            <span id="res_fy" class="font-bold text-indigo-600">f_y(x₀,y₀) = 1.000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cuadro Didáctico - Explicación Pedagógica Terrero -->
+                <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-6 rounded-xl shadow-md border border-slate-800 space-y-3">
+                    <div class="flex items-center space-x-2 text-indigo-400 font-semibold text-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        <span>Análisis Pedagógico para la Formación Docente</span>
+                    </div>
+
+                    <div id="pedagogical_note" class="text-sm text-slate-300 leading-relaxed font-sans">
+                        <!-- Se llena dinámicamente según el tamaño de los incrementos -->
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-800/80 text-xs text-slate-400 flex flex-col sm:flex-row justify-between gap-2">
+                        <span><strong>Ecuación del Plano Tangente:</strong> $z - z_0 = f_x(x_0,y_0)(x - x_0) + f_y(x_0,y_0)(y - y_0)$</span>
+                        <span><strong>Condición de Diferenciabilidad:</strong> $\lim_{(\Delta x,\Delta y) \to (0,0)} \frac{E}{\sqrt{\Delta x^2 + \Delta y^2}} = 0$</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 py-4 text-center text-xs mt-6">
+        <p>Desarrollado para el Profesorado en Matemática — Instituto Monseñor Terrero (2026)</p>
+    </footer>
+
+    <!-- LÓGICA EN JAVASCRIPT -->
+    <script>
+        // --- DEFINICIÓN DE FUNCIONES MATEMÁTICAS ---
+        const functions = {
+            paraboloide: {
+                f: (x, y) => x*x + y*y,
+                fx: (x, y) => 2*x,
+                fy: (x, y) => 2*y,
+                name: "f(x,y) = x² + y²"
+            },
+            silla: {
+                f: (x, y) => x*x - y*y,
+                fx: (x, y) => 2*x,
+                fy: (x, y) => -2*y,
+                name: "f(x,y) = x² - y²"
+            },
+            ondas: {
+                f: (x, y) => 2 * Math.sin(x) * Math.cos(y),
+                fx: (x, y) => 2 * Math.cos(x) * Math.cos(y),
+                fy: (x, y) => -2 * Math.sin(x) * Math.sin(y),
+                name: "f(x,y) = 2·sin(x)·cos(y)"
+            },
+            invertido: {
+                f: (x, y) => 4 - x*x - y*y,
+                fx: (x, y) => -2*x,
+                fy: (x, y) => -2*y,
+                name: "f(x,y) = 4 - x² - y²"
+            },
+            gaussiana: {
+                f: (x, y) => 4 * Math.exp(-(x*x + y*y)/2),
+                fx: (x, y) => -4 * x * Math.exp(-(x*x + y*y)/2),
+                fy: (x, y) => -4 * y * Math.exp(-(x*x + y*y)/2),
+                name: "f(x,y) = 4·exp(-(x²+y²)/2)"
+            }
+        };
+
+        // Estado Global
+        let currentFuncKey = 'paraboloide';
+
+        // Elementos DOM
+        const funcSelect = document.getElementById('funcSelect');
+        const slider_x0 = document.getElementById('slider_x0');
+        const slider_y0 = document.getElementById('slider_y0');
+        const slider_dx = document.getElementById('slider_dx');
+        const slider_dy = document.getElementById('slider_dy');
+
+        const val_x0 = document.getElementById('val_x0');
+        const val_y0 = document.getElementById('val_y0');
+        const val_dx = document.getElementById('val_dx');
+        const val_dy = document.getElementById('val_dy');
+
+        const chk_tangent = document.getElementById('chk_tangent');
+        const chk_box = document.getElementById('chk_box');
+        const chk_slices = document.getElementById('chk_slices');
+
+        const res_f0 = document.getElementById('res_f0');
+        const res_deltaz = document.getElementById('res_deltaz');
+        const res_dz = document.getElementById('res_dz');
+        const res_error = document.getElementById('res_error');
+        const res_fx = document.getElementById('res_fx');
+        const res_fy = document.getElementById('res_fy');
+        const pedagogical_note = document.getElementById('pedagogical_note');
+
+        // Inicialización de Render de KaTeX al cargar
+        document.addEventListener("DOMContentLoaded", () => {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false}
+                ]
+            });
+            initPlot();
+        });
+
+        // --- MESH GENERATION FOR PLOTLY ---
+        function generateSurfaceMesh(funcObj, gridRange = 2.0, steps = 40) {
+            let x = [], y = [], z = [];
+            let stepSize = (2 * gridRange) / steps;
+            
+            for (let i = 0; i <= steps; i++) {
+                let xi = -gridRange + i * stepSize;
+                x.push(xi);
+                y.push(xi);
+            }
+
+            for (let i = 0; i <= steps; i++) {
+                let zRow = [];
+                let yi = y[i];
+                for (let j = 0; j <= steps; j++) {
+                    let xj = x[j];
+                    zRow.push(funcObj.f(xj, yi));
+                }
+                z.push(zRow);
+            }
+
+            return { x, y, z };
+        }
+
+        // --- ACTUALIZACIÓN Y DIBUJO COMPLETO ---
+        function updateAll() {
+            const x0 = parseFloat(slider_x0.value);
+            const y0 = parseFloat(slider_y0.value);
+            const dx = parseFloat(slider_dx.value);
+            const dy = parseFloat(slider_dy.value);
+
+            // Actualización de Textos DOM
+            val_x0.innerText = x0.toFixed(2);
+            val_y0.innerText = y0.toFixed(2);
+            val_dx.innerText = (dx >= 0 ? '+' : '') + dx.toFixed(2);
+            val_dy.innerText = (dy >= 0 ? '+' : '') + dy.toFixed(2);
+
+            const funcObj = functions[currentFuncKey];
+            const x1 = x0 + dx;
+            const y1 = y0 + dy;
+
+            const z0 = funcObj.f(x0, y0);
+            const z1 = funcObj.f(x1, y1);
+            const fx = funcObj.fx(x0, y0);
+            const fy = funcObj.fy(x0, y0);
+
+            const deltaZ = z1 - z0;
+            const dz = fx * dx + fy * dy;
+            const error = deltaZ - dz;
+            const distRadius = Math.sqrt(dx * dx + dy * dy);
+
+            // Actualización de resultados numéricos
+            res_f0.innerText = z0.toFixed(3);
+            res_deltaz.innerText = (deltaZ >= 0 ? '+' : '') + deltaZ.toFixed(3);
+            res_dz.innerText = (dz >= 0 ? '+' : '') + dz.toFixed(3);
+            res_error.innerText = error.toFixed(4);
+
+            res_fx.innerText = `f_x(${x0.toFixed(2)}, ${y0.toFixed(2)}) = ${fx.toFixed(3)}`;
+            res_fy.innerText = `f_y(${x0.toFixed(2)}, ${y0.toFixed(2)}) = ${fy.toFixed(3)}`;
+
+            // Explicación didáctica dinámica
+            let noteHTML = "";
+            if (distRadius < 0.15) {
+                noteHTML = `
+                    <p class="mb-2"><strong class="text-emerald-400">Región de Aproximación Lineal Excelente:</strong> Cuando el incremento $\|(\\Delta x, \\Delta y)\\|$ es muy pequeño, el plano tangente coincide casi exactamente con la superficie.</p>
+                    <p>El error de la aproximación diferencial es insignificante ($E = ${error.toFixed(5)}$), lo que ilustra intuitivamente el concepto de <strong>diferenciabilidad local</strong>.</p>
+                `;
+            } else if (distRadius < 0.6) {
+                noteHTML = `
+                    <p class="mb-2"><strong class="text-amber-300">Aproximación de Primer Orden:</strong> Al alejarnos del punto base $P_0$, se hace evidente la curvatura de la superficie $z = f(x,y)$.</p>
+                    <p>El incremento real es $\\Delta z = ${deltaZ.toFixed(3)}$, mientras que el cambio predicho por el plano tangente (diferencial total) es $dz = ${dz.toFixed(3)}$. La diferencia corresponde a los términos de orden superior $E = \\Delta z - dz$.</p>
+                `;
+            } else {
+                noteHTML = `
+                    <p class="mb-2"><strong class="text-rose-400">Efecto de Curvatura Dominante:</strong> Con incrementos grandes ($\\|(\\Delta x,\\Delta y)\\| = ${distRadius.toFixed(2)}$), la estimación por el plano tangente comete un error apreciable ($E = ${error.toFixed(3)}$).</p>
+                    <p>Esto demuestra pedagógicamente por qué el diferencial $dz$ representa la <em>parte principal lineal</em> del incremento total $\\Delta z$.</p>
+                `;
+            }
+            pedagogical_note.innerHTML = noteHTML;
+            if (window.renderMathInElement) {
+                renderMathInElement(pedagogical_note, { delimiters: [{left: "$", right: "$", display: false}] });
+            }
+
+            // --- RECONSTRUIR DATOS 3D PARA PLOTLY ---
+            const plotData = [];
+
+            // 1. Superficie Principal
+            const mesh = generateSurfaceMesh(funcObj);
+            plotData.push({
+                type: 'surface',
+                x: mesh.x,
+                y: mesh.y,
+                z: mesh.z,
+                colorscale: 'Viridis',
+                opacity: 0.82,
+                showscale: false,
+                name: 'z = f(x,y)'
+            });
+
+            // 2. Punto Base P0 y Punto Incrementado P1
+            plotData.push({
+                type: 'scatter3d',
+                mode: 'markers+text',
+                x: [x0],
+                y: [y0],
+                z: [z0],
+                marker: { size: 7, color: '#ef4444', symbol: 'circle' },
+                text: ['P₀ (Base)'],
+                textposition: 'top center',
+                name: 'Punto P₀'
+            });
+
+            plotData.push({
+                type: 'scatter3d',
+                mode: 'markers+text',
+                x: [x1],
+                y: [y1],
+                z: [z1],
+                marker: { size: 7, color: '#10b981', symbol: 'diamond' },
+                text: ['P₁ (Incrementado)'],
+                textposition: 'top center',
+                name: 'Punto P₁'
+            });
+
+            // 3. Plano Tangente Local (opcional)
+            if (chk_tangent.checked) {
+                let tx = [], ty = [], tz = [];
+                let r = 0.6;
+                let stepsT = 10;
+                for (let i = 0; i <= stepsT; i++) {
+                    let xi = x0 - r + (2 * r * i) / stepsT;
+                    tx.push(xi);
+                    ty.push(y0 - r + (2 * r * i) / stepsT);
+                }
+                for (let i = 0; i <= stepsT; i++) {
+                    let zRow = [];
+                    for (let j = 0; j <= stepsT; j++) {
+                        let zPlane = z0 + fx * (tx[j] - x0) + fy * (ty[i] - y0);
+                        zRow.push(zPlane);
+                    }
+                    tz.push(zRow);
+                }
+                plotData.push({
+                    type: 'surface',
+                    x: tx,
+                    y: ty,
+                    z: tz,
+                    colorscale: [[0, '#818cf8'], [1, '#4338ca']],
+                    opacity: 0.45,
+                    showscale: false,
+                    name: 'Plano Tangente'
+                });
+            }
+
+            // 4. Caja / Vectores de Incrementos (opcional)
+            if (chk_box.checked) {
+                // Camino P0 -> (x0+dx, y0) -> (x0+dx, y0+dy, z0) -> P1
+                let zPlaneP1 = z0 + dz;
+                plotData.push({
+                    type: 'scatter3d',
+                    mode: 'lines',
+                    x: [x0, x1, x1, x1],
+                    y: [y0, y0, y1, y1],
+                    z: [z0, z0, z0, z1],
+                    line: { color: '#f59e0b', width: 5, dash: 'solid' },
+                    name: 'Camino Incrementos'
+                });
+
+                // Segmento diferencial z0 -> z0 + dz
+                plotData.push({
+                    type: 'scatter3d',
+                    mode: 'lines',
+                    x: [x1, x1],
+                    y: [y1, y1],
+                    z: [z0, zPlaneP1],
+                    line: { color: '#6366f1', width: 6 },
+                    name: 'dz (Diferencial)'
+                });
+
+                // Segmento de error (si hay diferencia perceptible)
+                if (Math.abs(error) > 0.001) {
+                    plotData.push({
+                        type: 'scatter3d',
+                        mode: 'lines',
+                        x: [x1, x1],
+                        y: [y1, y1],
+                        z: [zPlaneP1, z1],
+                        line: { color: '#ef4444', width: 6, dash: 'dot' },
+                        name: 'Error E'
+                    });
+                }
+            }
+
+            // 5. Cortes / Trazas Parciales (x = x0 e y = y0)
+            if (chk_slices.checked) {
+                let curveX_x = [], curveX_y = [], curveX_z = [];
+                let curveY_x = [], curveY_y = [], curveY_z = [];
+                for (let t = -1.8; t <= 1.8; t += 0.05) {
+                    // Curva para y = y0 fija (varía x)
+                    curveX_x.push(t);
+                    curveX_y.push(y0);
+                    curveX_z.push(funcObj.f(t, y0));
+
+                    // Curva para x = x0 fija (varía y)
+                    curveY_x.push(x0);
+                    curveY_y.push(t);
+                    curveY_z.push(funcObj.f(x0, t));
+                }
+
+                plotData.push({
+                    type: 'scatter3d',
+                    mode: 'lines',
+                    x: curveX_x,
+                    y: curveX_y,
+                    z: curveX_z,
+                    line: { color: '#2563eb', width: 4 },
+                    name: 'Corte y = y₀ (f_x)'
+                });
+
+                plotData.push({
+                    type: 'scatter3d',
+                    mode: 'lines',
+                    x: curveY_x,
+                    y: curveY_y,
+                    z: curveY_z,
+                    line: { color: '#059669', width: 4 },
+                    name: 'Corte x = x₀ (f_y)'
+                });
+            }
+
+            Plotly.react('plot3d', plotData, getLayout());
+        }
+
+        // Layout Config para Plotly 3D
+        function getLayout() {
+            return {
+                margin: { l: 0, r: 0, b: 0, t: 0 },
+                scene: {
+                    xaxis: { title: 'X', range: [-2, 2], gridcolor: '#e2e8f0' },
+                    yaxis: { title: 'Y', range: [-2, 2], gridcolor: '#e2e8f0' },
+                    zaxis: { title: 'Z', gridcolor: '#e2e8f0' },
+                    camera: {
+                        eye: { x: 1.4, y: -1.4, z: 1.2 }
+                    },
+                    aspectratio: { x: 1, y: 1, z: 0.8 }
+                },
+                showlegend: false,
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)'
+            };
+        }
+
+        // Inicializar Plotly
+        function initPlot() {
+            Plotly.newPlot('plot3d', [], getLayout(), { responsive: true, displayModeBar: false });
+            updateAll();
+        }
+
+        // Listeners de Eventos Controles
+        funcSelect.addEventListener('change', (e) => {
+            currentFuncKey = e.target.value;
+            updateAll();
+        });
+
+        [slider_x0, slider_y0, slider_dx, slider_dy].forEach(slider => {
+            slider.addEventListener('input', updateAll);
+        });
+
+        [chk_tangent, chk_box, chk_slices].forEach(chk => {
+            chk.addEventListener('change', updateAll);
+        });
+
+        // Evento de cambio de tamaño de ventana
+        window.addEventListener('resize', () => {
+            Plotly.Plots.resize('plot3d');
+        });
+    </script>
+</body>
+</html>
